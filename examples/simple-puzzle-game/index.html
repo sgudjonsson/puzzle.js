@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style type="text/css">
+			.puzzles {
+				position: relative;
+			}
+			.puzzle {
+				position: absolute;
+				border: dashed 1px #e6e6e6;
+				background-repeat: no-repeat;
+				background-image: url("image_630x630.jpg");
+				text-indent: -1000em;
+			}
+
+			.puzzle-blank {
+				background: #999;
+			}
+		</style>
+	</head>
+	<body>
+
+		<h1>Jig-saw puzzle mania</h1>
+		<p>Ble</p>
+
+		<div id="board" class="puzzles">
+		</div>
+			<ul>
+				<li><a href="#">Undo</a></li>
+				<li><a href="#">Redo</a></li>
+			</ul>
+		<script type="text/javascript" src="../../sgudjonsson.puzzle.js"></script>
+		<script type="text/javascript">
+
+			window.onload = function(e) {
+
+				var tiles = 5,
+					imgWidth = 630,
+					imgHeight = 630;
+
+				var tileWidth = imgWidth/tiles,
+					tileHeight = imgHeight/tiles;
+
+				var getTileBackgroundPositionStyle = function(num) {
+
+					var x = -((num % tiles) * tileWidth);
+					var y = 0;
+
+					if(num < tiles)
+						y = 0;
+					else {
+						var i = num;
+						while(i >= tiles) {							
+							y -= tileHeight;
+							i -= tiles;
+						}
+					}
+
+					return "background-position: "+ x +"px "+ y +"px";
+
+				};
+
+				var puzzles = sgudjonsson.puzzle.init(tiles, tiles);
+				var base = document.getElementById("board");
+
+				for(var i = 0; i < puzzles.length; i++) {
+					var puzzle = puzzles[i];
+
+					var elm = document.createElement("div");
+					elm.setAttribute("id", "puzzle-"+ puzzle.number);
+					elm.setAttribute("data-number", puzzle.number);
+					elm.setAttribute("data-x", puzzle.x);
+					elm.setAttribute("data-y", puzzle.y);
+
+					var cssClass = "puzzle "+ (puzzle.isBlank ? " puzzle-blank" : "");
+					elm.setAttribute("class", cssClass);
+
+					var style = "top: "+ (puzzle.y * tileHeight) +"px; left: "+ (puzzle.x * tileWidth) +"px; width: "+ (tileWidth-2) +"px; height: "+ (tileHeight-2) +"px;";
+					style += getTileBackgroundPositionStyle(puzzle.number);
+					elm.setAttribute("style", style);
+
+					elm.onclick = function(e) {
+						var self = this;
+						var data = {
+							number: parseInt(self.getAttribute("data-number")),
+							x: parseInt(self.getAttribute("data-x")),
+							y: parseInt(self.getAttribute("data-y")),
+							index: (function() {
+								var i = -1;
+								while((self = self.previousSibling) != null ) 
+									i++;
+								return i;
+							})()
+						};
+
+						var move = sgudjonsson.puzzle.movePuzzleAtCoords(data.x, data.y);
+
+						if(move != undefined) {
+
+							var elm = document.getElementById("puzzle-"+ move.puzzle.number);
+							elm.setAttribute("data-x", move.puzzle.x);
+							elm.setAttribute("data-y", move.puzzle.y);
+
+							var cssClass = "puzzle "+ (move.puzzle.isBlank ? " puzzle-blank" : "");
+							elm.setAttribute("class", cssClass);
+
+							elm.style.top = move.puzzle.y * tileHeight +"px";
+							elm.style.left = move.puzzle.x * tileWidth +"px"; 
+
+							var blank = document.getElementById("puzzle-"+ move.blank.number);
+							blank.setAttribute("data-x", move.blank.x);
+							blank.setAttribute("data-y", move.blank.y);
+
+							blank.style.top = move.blank.y * tileHeight +"px";
+							blank.style.left = move.blank.x * tileWidth +"px"; 
+
+						}
+					};
+
+					var txt = document.createTextNode(puzzle.number);
+					elm.appendChild(txt);
+
+					base.appendChild(elm);
+				}
+
+			};
+
+		</script>
+	</body>
+</html>
